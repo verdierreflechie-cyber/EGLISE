@@ -1,0 +1,10 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() { return signedIn() && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'ADMIN'; }
+    function isPastor() { return signedIn() && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['ADMIN','PASTOR']; }
+    match /cultes/{allPaths=**} { allow read: if true; allow write: if isAdmin(); }
+    match /pastoral/{allPaths=**} { allow read: if true; allow write: if isPastor(); }
+  }
+}
